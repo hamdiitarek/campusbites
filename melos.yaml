@@ -1,0 +1,4 @@
+name: campusbites
+packages:
+  - apps/**
+  - packages/**
