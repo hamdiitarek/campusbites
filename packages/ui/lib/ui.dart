@@ -1,5 +1,4 @@
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+library ui;
+
+// This package provides shared UI components and themes
+// Currently empty - components will be added as needed

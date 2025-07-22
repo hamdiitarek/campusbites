@@ -9,6 +9,7 @@ build/
 .flutter-plugins-dependencies
 .melos_tool/
 generated_plugin_registrant.dart
+BrainFuel/
 
 # macOS
 .DS_Store
