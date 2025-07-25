@@ -10,6 +10,7 @@ build/
 .melos_tool/
 generated_plugin_registrant.dart
 BrainFuel/
+product plan.md
 
 # macOS
 .DS_Store
