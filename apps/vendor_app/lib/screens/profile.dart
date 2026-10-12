@@ -65,7 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const Icon(
                       Icons.fastfood_outlined,
                       size: 80,
-                      color: Colors.blue,
+                      color: Brand.tomato,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -169,7 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         style: TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.blue.shade700,
+                                          color: Brand.tomatoDeep,
                                         ),
                                       ),
                                       SizedBox(height: 16),
@@ -180,7 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           labelText: 'Amount',
                                           hintText: 'Enter amount to recharge',
                                           prefixIcon: Icon(Icons.attach_money,
-                                              color: Colors.blue),
+                                              color: Brand.tomato),
                                           filled: true,
                                           fillColor: Colors.grey.shade100,
                                           border: OutlineInputBorder(
@@ -192,7 +192,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             borderRadius:
                                                 BorderRadius.circular(12),
                                             borderSide: BorderSide(
-                                                color: Colors.blue, width: 2),
+                                                color: Brand.tomato, width: 2),
                                           ),
                                         ),
                                       ),
@@ -237,7 +237,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               }
                                             },
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.blue,
+                                              backgroundColor: Brand.tomato,
                                               foregroundColor: Colors.white,
                                               shape: RoundedRectangleBorder(
                                                 borderRadius:
@@ -264,7 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         icon: Icon(Icons.add_circle_outline, size: 20),
                         label: Text('Recharge Wallet'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: Brand.tomato,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -287,7 +287,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: Colors.blue),
+          Icon(icon, size: 20, color: Brand.tomato),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

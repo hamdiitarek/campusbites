@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:core/demo.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -36,6 +37,12 @@ class NotificationService {
     if (_initialized) return;
 
     _navigatorKey = navigatorKey;
+
+    // Demo builds run on the emulators, which have no Cloud Messaging.
+    if (kDemoMode) {
+      _initialized = true;
+      return;
+    }
     debugPrint('Initializing NotificationService with navigator key...');
 
     try {

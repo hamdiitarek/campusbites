@@ -101,7 +101,6 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ],
         ),
-        backgroundColor: Colors.white,
         elevation: 0,
       ),
       body: ListView.builder(

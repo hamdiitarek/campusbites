@@ -1,3 +1,4 @@
+import 'package:core/theme/brand.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -101,7 +102,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Verification email sent. Please check your inbox.'),
-            backgroundColor: Colors.green,
+            backgroundColor: Brand.basil,
           ),
         );
       } else {
@@ -156,7 +157,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         const Icon(
           Icons.email_outlined,
           size: 80,
-          color: Colors.blue,
+          color: Brand.tomato,
         ),
         const SizedBox(height: 24),
         Text(
@@ -182,7 +183,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           ElevatedButton(
             onPressed: _proceedToHome,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: Brand.basil,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             ),

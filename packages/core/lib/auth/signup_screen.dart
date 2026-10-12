@@ -1,3 +1,4 @@
+import 'package:core/theme/brand.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:core/models/university.dart';
@@ -106,7 +107,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 const Icon(
                   Icons.school_rounded,
                   size: 60,
-                  color: Colors.blue,
+                  color: Brand.tomato,
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -213,7 +214,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               : 'Please select a university first',
                           helperStyle: TextStyle(
                             color: _selectedUniversity != null
-                                ? Colors.green.shade700
+                                ? Brand.basil
                                 : Colors.grey,
                             fontWeight: FontWeight.w500,
                           ),

@@ -23,6 +23,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _isWalletSelected = true;
   bool _isProcessingOrder = false;
   final OrderService _orderService = OrderService();
+
+  List<Map<String, dynamic>> get _lines {
+    final lines = <Map<String, dynamic>>[];
+    for (final item in widget.cart) {
+      final key = item['lineKey'] ?? item['name'];
+      final i = lines.indexWhere((l) => (l['lineKey'] ?? l['name']) == key);
+      if (i == -1) {
+        lines.add(Map<String, dynamic>.from(item));
+      } else {
+        lines[i]['quantity'] += item['quantity'];
+      }
+    }
+    return lines;
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
@@ -31,7 +46,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Checkout'),
-        backgroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -64,7 +78,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
                           color: _isWalletSelected
-                              ? Colors.blue
+                              ? Brand.tomato
                               : Colors.grey[200],
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -102,7 +116,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
                           color: !_isWalletSelected
-                              ? Colors.blue
+                              ? Brand.tomato
                               : Colors.grey[200],
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -155,15 +169,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: Row(
                   children: [
                     const Icon(Icons.account_balance_wallet,
-                        color: Colors.green),
-                    const SizedBox(width: 8),
+                        color: Brand.basil),
+                    const SizedBox(width: 10),
+                    const Text('Wallet balance',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    const Spacer(),
                     Text(
-                      'Wallet Balance: \EGP ${walletBalance.toStringAsFixed(2)}',
+                      Brand.egp(walletBalance),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: _isWalletSelected && walletBalance < widget.total
+                        color: walletBalance < widget.total
                             ? Colors.red
-                            : Colors.black,
+                            : Brand.grill,
                       ),
                     ),
                   ],
@@ -172,7 +189,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
             const SizedBox(height: 16),
 
-            // Total Price
+            // Order summary
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -180,33 +197,93 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     spreadRadius: 1,
                     blurRadius: 5,
                     offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Total Price:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                  const Text('Order summary',
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                  const SizedBox(height: 14),
+                  for (final line in _lines)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 30,
+                            child: Text('${line['quantity']}×',
+                                style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w600)),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(line['name'] ?? '',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600)),
+                                if ((line['customizations'] as Map?)
+                                        ?.isNotEmpty ??
+                                    false)
+                                  Text(
+                                    (line['customizations'] as Map)
+                                        .keys
+                                        .join(' · '),
+                                    style: TextStyle(
+                                        fontSize: 13, color: Colors.grey[600]),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          Text(Brand.egp(((line['price'] as num?) ?? 0) *
+                              ((line['quantity'] as num?) ?? 1))),
+                        ],
+                      ),
                     ),
-                  ),
-                  Text(
-                    '\EGP ${widget.total.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: Colors.blue,
-                    ),
+                  const Divider(height: 12),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Total',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text(
+                        Brand.egp(widget.total),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Brand.tomato,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
+            ),
+
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Icon(Icons.storefront_outlined,
+                    size: 18, color: Colors.grey[600]),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Pick up at the counter. We\'ll notify you when it\'s ready.',
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  ),
+                ),
+              ],
             ),
 
             const Spacer(),
@@ -216,7 +293,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Brand.tomato,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -235,28 +312,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           return;
                         }
 
-                        if (_isWalletSelected) {
-                          double newBalance = walletBalance - widget.total;
-                          bool success = await userProvider.updateProfile(
-                              walletBalance: newBalance);
-                          if (!success) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(userProvider.error.isNotEmpty
-                                    ? userProvider.error
-                                    : 'Failed to process payment'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            return;
-                          }
-                        }
-
-                        setState(() {
-                          _isProcessingOrder = true;
-                        });
+                        // Lock the button first so a double tap can't pay twice.
+                        setState(() => _isProcessingOrder = true);
+                        var charged = false;
 
                         try {
+                          if (_isWalletSelected) {
+                            charged = await userProvider.updateProfile(
+                                walletBalance: walletBalance - widget.total);
+                            if (!charged) {
+                              throw userProvider.error.isNotEmpty
+                                  ? userProvider.error
+                                  : 'Failed to process payment';
+                            }
+                          }
+
                           // Get vendor ID from widget or extract from cart items
                           String vendorId = widget.vendorId ??
                               (widget.cart.isNotEmpty &&
@@ -264,22 +334,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   ? widget.cart.first['vendorId']
                                   : 'vendor_123'); // Fallback
 
-                          // Create the order first
                           final orderId = await _orderService.createOrder(
                             Order(
                               id: '',
                               userId: userId,
                               vendorId: vendorId,
-                              items: widget.cart
+                              items: _lines
                                   .map((item) => OrderItem(
                                         id: item['id'] ?? '',
                                         name: item['name'] ?? '',
-                                        price: item['price']?.toDouble() ?? 0.0,
-                                        quantity:
-                                            item['quantity']?.toInt() ?? 0,
+                                        price: (item['price'] as num?)
+                                                ?.toDouble() ??
+                                            0.0,
+                                        quantity: (item['quantity'] as num?)
+                                                ?.toInt() ??
+                                            0,
                                         note: item['note'] ?? '',
                                         customizations:
-                                            item['customizations'] ?? {},
+                                            Map<String, dynamic>.from(
+                                                item['customizations'] ?? {}),
                                       ))
                                   .toList(),
                               total: widget.total,
@@ -290,9 +363,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                           );
 
-                          // Navigate to order status screen with the order ID
-                          Navigator.pushReplacement(
-                            context,
+                          if (!context.mounted) return;
+                          // The order is placed: empty the cart and go back to
+                          // the tabs, with the live status on top.
+                          widget.cart.clear();
+                          final navigator = Navigator.of(context);
+                          navigator.popUntil((route) => route.isFirst);
+                          navigator.push(
                             MaterialPageRoute(
                               builder: (context) => OrderStatusScreen(
                                 isFromCheckout: true,
@@ -302,16 +379,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                           );
                         } catch (e) {
+                          // The order was never written: give the money back.
+                          if (charged) {
+                            await userProvider.updateProfile(
+                                walletBalance: walletBalance);
+                          }
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Failed to create order: $e'),
+                              content: Text('Could not place order: $e'),
                               backgroundColor: Colors.red,
                             ),
                           );
                         } finally {
-                          setState(() {
-                            _isProcessingOrder = false;
-                          });
+                          if (mounted) {
+                            setState(() => _isProcessingOrder = false);
+                          }
                         }
                       },
                 child: _isProcessingOrder
@@ -323,8 +406,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        'Checkout',
+                    : Text(
+                        'Place order  ·  ${Brand.egp(widget.total)}',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

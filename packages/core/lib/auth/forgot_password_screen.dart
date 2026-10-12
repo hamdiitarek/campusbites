@@ -1,3 +1,4 @@
+import 'package:core/theme/brand.dart';
 import 'package:flutter/material.dart';
 import 'package:core/utils/validators.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -115,7 +116,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const Icon(
                   Icons.lock_reset,
                   size: 80,
-                  color: Colors.blue,
+                  color: Brand.tomato,
                 ),
                 const SizedBox(height: 24),
 
@@ -231,7 +232,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const Icon(
                 Icons.mark_email_read,
                 size: 80,
-                color: Colors.green,
+                color: Brand.basil,
               ),
               const SizedBox(height: 32),
 
@@ -242,7 +243,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.green[700],
+                  color: Brand.basil,
                 ),
               ),
               const SizedBox(height: 16),
@@ -260,7 +261,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 padding:
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
+                  color: Brand.tomatoTint,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -269,7 +270,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade700,
+                    color: Brand.tomatoDeep,
                   ),
                 ),
               ),
@@ -328,8 +329,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Didn\'t receive the email? Try again'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.blue,
-                  side: const BorderSide(color: Colors.blue),
+                  foregroundColor: Brand.tomato,
+                  side: const BorderSide(color: Brand.tomato),
                   padding:
                       const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 ),
@@ -351,7 +352,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             margin: const EdgeInsets.only(top: 2),
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: Brand.tomato,
               shape: BoxShape.circle,
             ),
             child: Text(

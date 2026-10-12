@@ -17,7 +17,6 @@ class VendorMenuScreen extends StatefulWidget {
 class _VendorMenuScreenState extends State<VendorMenuScreen> {
   final currentUser = FirebaseAuth.instance.currentUser;
   final TextEditingController _searchController = TextEditingController();
-  final Map<String, String> _imageCache = {};
   final Map<String, Widget> _imageWidgets = {};
   List<MenuCategory> _categories = [];
   List<MenuCategory> _filteredCategories = [];
@@ -89,17 +88,8 @@ class _VendorMenuScreenState extends State<VendorMenuScreen> {
     }
   }
 
-  Future<String> _getImageUrl(String imagePath) async {
-    if (_imageCache.containsKey(imagePath)) return _imageCache[imagePath]!;
-    try {
-      final url =
-          await FirebaseStorage.instance.ref(imagePath).getDownloadURL();
-      _imageCache[imagePath] = url;
-      return url;
-    } catch (_) {
-      return '';
-    }
-  }
+  Future<String> _getImageUrl(String imagePath) =>
+      StorageImage.resolve(imagePath);
 
   Widget _getCachedImage(String imagePath) {
     if (_imageWidgets.containsKey(imagePath)) return _imageWidgets[imagePath]!;
@@ -286,7 +276,7 @@ class _VendorMenuScreenState extends State<VendorMenuScreen> {
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.edit, color: Color(0xFF0077FF)),
+              leading: const Icon(Icons.edit, color: Brand.tomato),
               title: const Text("Edit Item"),
               onTap: () {
                 Navigator.pop(context);
@@ -400,7 +390,7 @@ class _VendorMenuScreenState extends State<VendorMenuScreen> {
                         icon: const Icon(Icons.upload),
                         label: const Text("Upload Image"),
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0077FF)),
+                            backgroundColor: Brand.tomato),
                         onPressed: () async {
                           final picked = await ImagePicker()
                               .pickImage(source: ImageSource.gallery);
@@ -428,7 +418,7 @@ class _VendorMenuScreenState extends State<VendorMenuScreen> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.add_circle,
-                              color: Color(0xFF0077FF)),
+                              color: Brand.tomato),
                           onPressed: () {
                             setModalState(() {
                               customizationControllers.add({
@@ -494,7 +484,7 @@ class _VendorMenuScreenState extends State<VendorMenuScreen> {
                     Center(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0077FF)),
+                            backgroundColor: Brand.tomato),
                         child: const Text("Save",
                             style: TextStyle(color: Colors.white)),
                         onPressed: () async {
@@ -570,7 +560,6 @@ class _VendorMenuScreenState extends State<VendorMenuScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
         elevation: 0,
         title: const Text(
@@ -583,7 +572,7 @@ class _VendorMenuScreenState extends State<VendorMenuScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF0077FF)),
+            icon: const Icon(Icons.refresh, color: Brand.tomato),
             onPressed: _fetchMenu,
           ),
         ],
@@ -602,7 +591,7 @@ class _VendorMenuScreenState extends State<VendorMenuScreen> {
                 style: const TextStyle(fontSize: 16),
                 decoration: const InputDecoration(
                   hintText: 'Search item...',
-                  prefixIcon: Icon(Icons.search, color: Color(0xFF0055FF)),
+                  prefixIcon: Icon(Icons.search, color: Brand.tomato),
                   filled: true,
                   fillColor: Colors.white,
                   contentPadding: EdgeInsets.symmetric(vertical: 0),
@@ -636,7 +625,7 @@ class _VendorMenuScreenState extends State<VendorMenuScreen> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.add_circle_outline,
-                            color: Color(0xFF0077FF)),
+                            color: Brand.tomato),
                         onPressed: _showAddCategoryDialog,
                       ),
                     ],
@@ -702,9 +691,9 @@ class _VendorMenuScreenState extends State<VendorMenuScreen> {
                                   ],
                                 ),
                                 trailing: Text(
-                                  "EGP ${item.price.toStringAsFixed(2)}",
+                                  Brand.egp(item.price),
                                   style: const TextStyle(
-                                      color: Colors.green,
+                                      color: Brand.basil,
                                       fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -718,7 +707,7 @@ class _VendorMenuScreenState extends State<VendorMenuScreen> {
               ],
             ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF0077FF),
+        backgroundColor: Brand.tomato,
         child: const Icon(Icons.add),
         onPressed: () => _showItemFormDialog(),
       ),

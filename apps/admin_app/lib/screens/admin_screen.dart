@@ -51,7 +51,7 @@ class _AdminVendorManagementScreenState
       bottomNavigationBar: CupertinoTabBar(
         currentIndex: _selectedIndex,
         onTap: _onTabTapped,
-        activeColor: Colors.blue,
+        activeColor: Brand.tomato,
         inactiveColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
@@ -127,7 +127,7 @@ class _AdminScreenContentState extends State<AdminScreenContent> {
                 const Text('Vendor account created successfully!'),
               ],
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: Brand.basil,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -175,7 +175,7 @@ class _AdminScreenContentState extends State<AdminScreenContent> {
           'Create Vendor Account',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Colors.blue.shade50,
+        backgroundColor: Brand.tomatoTint,
         elevation: 2,
         automaticallyImplyLeading: false,
         actions: [
@@ -194,7 +194,7 @@ class _AdminScreenContentState extends State<AdminScreenContent> {
               ],
             ),
             child: IconButton(
-              icon: Icon(Icons.refresh_rounded, color: Colors.blue.shade600),
+              icon: Icon(Icons.refresh_rounded, color: Brand.tomato),
               onPressed: _clearForm,
               tooltip: 'Clear form',
             ),
@@ -215,14 +215,14 @@ class _AdminScreenContentState extends State<AdminScreenContent> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.blue.shade600, Colors.blue.shade400],
+                    colors: [Brand.tomato, Brand.tomato],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withOpacity(0.3),
+                      color: Brand.tomato.withValues(alpha: 0.3),
                       spreadRadius: 1,
                       blurRadius: 8,
                       offset: const Offset(0, 4),
@@ -351,7 +351,7 @@ class _AdminScreenContentState extends State<AdminScreenContent> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.blue.shade100),
+                  border: Border.all(color: Brand.tomatoTint),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withOpacity(0.1),
@@ -369,12 +369,12 @@ class _AdminScreenContentState extends State<AdminScreenContent> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.blue.shade100,
+                            color: Brand.tomatoTint,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
                             Icons.school_outlined,
-                            color: Colors.blue.shade600,
+                            color: Brand.tomato,
                             size: 20,
                           ),
                         ),
@@ -393,14 +393,14 @@ class _AdminScreenContentState extends State<AdminScreenContent> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
+                        color: Brand.tomatoTint,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         _universityName,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.blue.shade700,
+                          color: Brand.tomatoDeep,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -418,13 +418,13 @@ class _AdminScreenContentState extends State<AdminScreenContent> {
                   onPressed: _isLoading ? null : _createVendor,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.blue.shade600,
+                    backgroundColor: Brand.tomato,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 2,
-                    shadowColor: Colors.blue.withOpacity(0.3),
+                    shadowColor: Brand.tomato.withValues(alpha: 0.3),
                   ),
                   child: _isLoading
                       ? Row(
@@ -481,7 +481,7 @@ class _AdminScreenContentState extends State<AdminScreenContent> {
       decoration: InputDecoration(
         labelText: label,
         hintText: hintText,
-        prefixIcon: Icon(icon, color: Colors.blue.shade600),
+        prefixIcon: Icon(icon, color: Brand.tomato),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -492,7 +492,7 @@ class _AdminScreenContentState extends State<AdminScreenContent> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
+          borderSide: BorderSide(color: Brand.tomato, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -517,7 +517,7 @@ class _AdminScreenContentState extends State<AdminScreenContent> {
       controller: _tempPasswordController,
       decoration: InputDecoration(
         labelText: 'Temporary Password',
-        prefixIcon: Icon(Icons.lock_outline, color: Colors.blue.shade600),
+        prefixIcon: Icon(Icons.lock_outline, color: Brand.tomato),
         suffixIcon: IconButton(
           icon: Icon(
             _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -539,7 +539,7 @@ class _AdminScreenContentState extends State<AdminScreenContent> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
+          borderSide: BorderSide(color: Brand.tomato, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

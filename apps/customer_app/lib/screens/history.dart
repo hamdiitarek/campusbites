@@ -1,7 +1,9 @@
+import 'package:core/core.dart';
 import 'order_status.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -11,15 +13,26 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  Map<String, Vendor> _vendors = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // A campus has a handful of vendors; load them once for names and photos.
+    VendorService().getVendors().then((vendors) {
+      if (mounted)
+        setState(() => _vendors = {for (final v in vendors) v.id: v});
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final userId = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Brand.cream,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
           'Order History',
@@ -38,17 +51,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
+        // OrderService writes orders to /orders and the vendor's copy only,
+        // so history reads the main collection (same query as order status).
         stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
             .collection('orders')
+            .where('userId', isEqualTo: userId)
             .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                valueColor: AlwaysStoppedAnimation<Color>(Brand.tomato),
               ),
             );
           }
@@ -60,9 +74,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
           final orders = snapshot.data!.docs;
 
           return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
             itemCount: orders.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final order = orders[index].data() as Map<String, dynamic>;
               final orderId = orders[index].id;
@@ -112,198 +126,104 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _buildOrderCard(BuildContext context, Map<String, dynamic> order,
       String orderId, List<dynamic> items, String status, String userId) {
-    final totalItems = items.fold<int>(
-        0, (sum, item) => sum + (item['quantity'] as int? ?? 0));
-    final totalPrice = items.fold<double>(
-        0,
-        (sum, item) =>
-            sum +
-            ((item['price'] as num? ?? 0) * (item['quantity'] as num? ?? 0)));
+    final vendor = _vendors[order['vendorId']];
+    final total = (order['total'] as num?) ??
+        items.fold<num>(
+            0,
+            (sum, item) =>
+                sum +
+                ((item['price'] as num? ?? 0) *
+                    (item['quantity'] as num? ?? 0)));
+    final createdAt = order['createdAt'] is Timestamp
+        ? (order['createdAt'] as Timestamp).toDate()
+        : null;
+    final summary = items
+        .map((item) => '${item['name'] ?? 'Item'} ×${item['quantity'] ?? 1}')
+        .join(', ');
 
     return GestureDetector(
       onTap: () => _navigateToOrderStatus(context, orderId, userId),
       child: Container(
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with status and date
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child:
+                  StorageImage(vendor?.imageUrl ?? '', width: 56, height: 56),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildStatusChip(status),
                   Text(
-                    'Order #${orderId.substring(0, 8)}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
+                    vendor?.name ?? 'Order #${orderId.substring(0, 8)}',
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 2),
+                  if (createdAt != null)
+                    Text(
+                      _formatDate(createdAt),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                     ),
+                  const SizedBox(height: 6),
+                  Text(
+                    summary.isEmpty ? 'No items in this order' : summary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 14, color: Colors.grey[800]),
                   ),
                 ],
               ),
-
-              const SizedBox(height: 16),
-
-              // Order summary
-              if (items.isNotEmpty) ...[
-                Row(
-                  children: [
-                    Icon(Icons.shopping_bag_outlined,
-                        size: 20, color: Colors.grey[600]),
-                    const SizedBox(width: 8),
-                    Text(
-                      '$totalItems ${totalItems == 1 ? 'item' : 'items'}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+            ),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  Brand.egp(total),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w700),
                 ),
-
-                const SizedBox(height: 12),
-
-                // Items preview (show first 2 items)
-                ...items.take(2).map((item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[400],
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              '${item['name'] ?? 'Unknown Item'} × ${item['quantity'] ?? 0}',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )),
-
-                if (items.length > 2)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: Text(
-                      '+${items.length - 2} more ${items.length - 2 == 1 ? 'item' : 'items'}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-              ] else ...[
-                Row(
-                  children: [
-                    Icon(Icons.error_outline,
-                        size: 20, color: Colors.orange[600]),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'No items in this order',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.orange,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
+                const SizedBox(height: 8),
+                _buildStatusChip(status),
               ],
-
-              const SizedBox(height: 16),
-
-              // Footer with total and payment method
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Total Amount',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Text(
-                          '\EGP ${totalPrice.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Payment',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Text(
-                          order['paymentMethod']?.toString().toUpperCase() ??
-                              'N/A',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final time = DateFormat('HH:mm').format(date);
+    if (DateUtils.isSameDay(date, now)) return 'Today · $time';
+    if (DateUtils.isSameDay(date, now.subtract(const Duration(days: 1)))) {
+      return 'Yesterday · $time';
+    }
+    return '${DateFormat('EEE d MMM').format(date)} · $time';
   }
 
   Widget _buildStatusChip(String status) {
     final statusData = _getStatusData(status);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
         color: statusData['color'].withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
@@ -341,17 +261,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
     switch (status.toLowerCase()) {
       case 'completed':
         return {
-          'color': Colors.green[600],
+          'color': Colors.grey[700],
           'label': 'Completed',
         };
       case 'confirmed':
         return {
-          'color': Colors.blue[600],
+          'color': Brand.tomatoDeep,
           'label': 'Confirmed',
         };
       case 'pending':
         return {
-          'color': Colors.yellow[600],
+          'color': Colors.orange[800],
           'label': 'Pending',
         };
       case 'cancelled':
@@ -361,7 +281,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         };
       case 'ready':
         return {
-          'color': Colors.blue[600],
+          'color': Brand.basil,
           'label': 'Ready',
         };
       default:

@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:core/core.dart' as core;
+import 'package:core/theme/brand.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:intl/intl.dart';
 import 'package:animated_custom_dropdown/custom_dropdown.dart';
 
 class VendorOrdersScreen extends StatefulWidget {
@@ -21,7 +23,7 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen> {
 
   final Map<String, GlobalKey> _orderStatusKeys = {};
 
-  static const Color primaryColor = Color(0xFF0055FF); // Blue theme color
+  static const Color primaryColor = Brand.tomato;
 
   @override
   void initState() {
@@ -45,9 +47,9 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen> {
       case 'pending':
         return Colors.orange;
       case 'confirmed':
-        return Colors.blue;
+        return Brand.tomato;
       case 'ready':
-        return Colors.green;
+        return Brand.basil;
       case 'completed':
         return Colors.grey;
       case 'cancelled':
@@ -149,8 +151,7 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen> {
                                   newDisplayStatus == 'All') {
                                 _statusFilter = 'All';
                               } else {
-                                _statusFilter =
-                                    newDisplayStatus.toLowerCase();
+                                _statusFilter = newDisplayStatus.toLowerCase();
                               }
                             });
                           },
@@ -193,14 +194,15 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen> {
                   }
 
                   var filteredOrders = allOrders.where((order) {
-                    final matchesSearch = _searchQuery.isEmpty ||
-                        order.id
-                            .toLowerCase()
-                            .contains(_searchQuery.toLowerCase());
+                    final query = _searchQuery.toLowerCase();
+                    final matchesSearch = query.isEmpty ||
+                        order.id.toLowerCase().contains(query) ||
+                        order.items
+                            .any((i) => i.name.toLowerCase().contains(query));
                     final isFromToday = isToday(order.createdAt);
                     final matchesStatus = _statusFilter == 'All'
                         ? order.status != 'completed' &&
-                        order.status != 'cancelled'
+                            order.status != 'cancelled'
                         : order.status == _statusFilter;
                     return matchesSearch && matchesStatus && isFromToday;
                   }).toList();
@@ -224,106 +226,128 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen> {
                         key: ValueKey(order.id),
                         margin: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                color: statusColor,
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(12),
-                                  bottomLeft: Radius.circular(12),
-                                ),
+                        clipBehavior: Clip.antiAlias,
+                        child: ExpansionTile(
+                          iconColor: primaryColor,
+                          collapsedIconColor: Colors.grey[600],
+                          shape: const Border(),
+                          collapsedShape: const Border(),
+                          tilePadding: const EdgeInsets.fromLTRB(16, 6, 12, 6),
+                          title: Row(
+                            children: [
+                              Text(
+                                '#${order.id.substring(0, 6).toUpperCase()}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w700, fontSize: 16),
                               ),
-                            ),
-                            Expanded(
-                              child: ExpansionTile(
-                                iconColor: primaryColor,
-                                collapsedIconColor: primaryColor,
-                                title: Text(
-                                  'Order ID: ${order.id}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
+                              const SizedBox(width: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 9, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  getDisplayStatus(order.status),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: statusColor,
                                   ),
                                 ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Status: ${order.status}'),
-                                    Text('Payment: ${order.paymentMethod}'),
-                                    Text(
-                                        'Total: EGP ${order.total.toStringAsFixed(2)}'),
-                                    Text('Placed: $relativeTime'),
-                                  ],
+                              ),
+                            ],
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  order.items
+                                      .map((i) => '${i.quantity}× ${i.name}')
+                                      .join(', '),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      fontSize: 15, color: Brand.grill),
                                 ),
-                                children: [
-                                  ...order.items.map((item) => ListTile(
-                                    title: Text(item.name),
-                                    subtitle: Column(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        Text('Qty: ${item.quantity}'),
-                                        Text('Note: ${item.note}'),
-                                        Text(
-                                            'Price: ${item.price.toStringAsFixed(2)}'),
-                                      ],
-                                    ),
-                                  )),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0, vertical: 8),
-                                    child: Builder(
-                                      builder: (context) {
-                                        _orderStatusKeys[order.id] ??=
-                                            GlobalKey();
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${Brand.egp(order.total)} · ${order.paymentMethod} · '
+                                  '${DateFormat('HH:mm').format(order.createdAt)}'
+                                    '${DateTime.now().difference(order.createdAt).inMinutes >= 1 ? ' ($relativeTime)' : ''}',
+                                  style: TextStyle(
+                                      fontSize: 13, color: Colors.grey[600]),
+                                ),
+                              ],
+                            ),
+                          ),
+                          children: [
+                            const Divider(height: 1),
+                            ...order.items.map((item) => ListTile(
+                                  dense: true,
+                                  title: Text('${item.quantity}× ${item.name}',
+                                      style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600)),
+                                  subtitle: item.customizations.isEmpty &&
+                                          item.note.isEmpty
+                                      ? null
+                                      : Text([
+                                          ...item.customizations.keys,
+                                          if (item.note.isNotEmpty)
+                                            '"${item.note}"',
+                                        ].join(' · ')),
+                                  trailing: Text(
+                                      Brand.egp(item.price * item.quantity)),
+                                )),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
+                              child: Builder(
+                                builder: (context) {
+                                  _orderStatusKeys[order.id] ??= GlobalKey();
 
-                                        final List<String> statusOptions = [
-                                          'Pending',
-                                          'Confirmed',
-                                          'Ready',
-                                          'Completed',
-                                          'Cancelled'
-                                        ];
+                                  final List<String> statusOptions = [
+                                    'Pending',
+                                    'Confirmed',
+                                    'Ready',
+                                    'Completed',
+                                    'Cancelled'
+                                  ];
 
-                                        final Map<String, String>
-                                        statusValueMap = {
-                                          'Pending': 'pending',
-                                          'Confirmed': 'confirmed',
-                                          'Ready': 'ready',
-                                          'Completed': 'completed',
-                                          'Cancelled': 'cancelled'
-                                        };
+                                  final Map<String, String> statusValueMap = {
+                                    'Pending': 'pending',
+                                    'Confirmed': 'confirmed',
+                                    'Ready': 'ready',
+                                    'Completed': 'completed',
+                                    'Cancelled': 'cancelled'
+                                  };
 
-                                        String currentStatus =
-                                        getDisplayStatus(order.status);
+                                  String currentStatus =
+                                      getDisplayStatus(order.status);
 
-                                        return CustomDropdown<String>(
-                                          hintText: 'Update Order Status',
-                                          items: statusOptions,
-                                          initialItem: currentStatus,
-                                          onChanged: (newStatusDisplay) async {
-                                            if (newStatusDisplay == null)
-                                              return;
+                                  return CustomDropdown<String>(
+                                    hintText: 'Update Order Status',
+                                    items: statusOptions,
+                                    initialItem: currentStatus,
+                                    onChanged: (newStatusDisplay) async {
+                                      if (newStatusDisplay == null) return;
 
-                                            final newStatus = statusValueMap[
-                                            newStatusDisplay] ??
-                                                'pending';
-                                            try {
-                                              await _orderService
-                                                  .updateOrderStatus(order.id,
-                                                  vendorId, newStatus);
-                                            } catch (e) {
-                                              debugPrint(
-                                                  'Error updating order status: $e');
-                                            }
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  )
-                                ],
+                                      final newStatus =
+                                          statusValueMap[newStatusDisplay] ??
+                                              'pending';
+                                      try {
+                                        await _orderService.updateOrderStatus(
+                                            order.id, vendorId, newStatus);
+                                      } catch (e) {
+                                        debugPrint(
+                                            'Error updating order status: $e');
+                                      }
+                                    },
+                                  );
+                                },
                               ),
                             ),
                           ],

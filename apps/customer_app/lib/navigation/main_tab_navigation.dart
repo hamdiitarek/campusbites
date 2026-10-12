@@ -4,7 +4,6 @@ import 'package:core/core.dart';
 import '../screens/home_screen.dart';
 import '../screens/history.dart';
 import '../screens/profile.dart';
-import '../screens/search_vendor.dart';
 
 class MainTabNavigation extends StatelessWidget {
   final int initialIndex;
@@ -17,8 +16,10 @@ class MainTabNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
+      backgroundColor: Brand.cream,
       tabBar: CupertinoTabBar(
         height: 60,
+        backgroundColor: Colors.white,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Padding(
@@ -65,10 +66,7 @@ class MainTabNavigation extends StatelessWidget {
               default:
                 child = const HomeScreen();
             }
-            return Padding(
-              padding: const EdgeInsets.only(top: 16.0),
-              child: child,
-            );
+            return child;
           },
         );
       },

@@ -20,57 +20,58 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // Configure foreground notification presentation options
-  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-
-  // Request permission for notifications (Android 13+ needs explicit permission)
-  if (await FirebaseMessaging.instance.isSupported()) {
-    final settings = await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
-
-    debugPrint('User granted permission: ${settings.authorizationStatus}');
-  }
-
-  // Set up background message handler
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  // Initialize notification service with navigator key
-  await NotificationService().init(navigatorKey: navigatorKey);
+  // Production Firebase, or the local emulators in demo builds
+  await initCampusFirebase();
 
   // Set up customer-specific notification navigation
   NotificationNavigationService().setNavigationHandler(
     CustomerNotificationNavigationHandler(),
   );
 
-  // Additional check for initial message (debugging)
-  try {
-    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-    if (initialMessage != null) {
-      debugPrint(
-          '🚀 MAIN: App opened from terminated state with notification!');
-      debugPrint('🚀 MAIN: Initial message ID: ${initialMessage.messageId}');
-      debugPrint('🚀 MAIN: Initial message data: ${initialMessage.data}');
-    } else {
-      debugPrint('🚀 MAIN: No initial message found');
+  // The emulators have no Cloud Messaging, so demo builds skip push setup.
+  if (!kDemoMode) {
+    // Configure foreground notification presentation options
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    // Request permission for notifications (Android 13+ needs explicit permission)
+    if (await FirebaseMessaging.instance.isSupported()) {
+      final settings = await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+
+      debugPrint('User granted permission: ${settings.authorizationStatus}');
     }
-  } catch (e) {
-    debugPrint('🚀 MAIN: Error checking initial message: $e');
+
+    // Set up background message handler
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    // Initialize notification service with navigator key
+    await NotificationService().init(navigatorKey: navigatorKey);
+
+    // Additional check for initial message (debugging)
+    try {
+      final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+      if (initialMessage != null) {
+        debugPrint(
+            '🚀 MAIN: App opened from terminated state with notification!');
+        debugPrint('🚀 MAIN: Initial message ID: ${initialMessage.messageId}');
+        debugPrint('🚀 MAIN: Initial message data: ${initialMessage.data}');
+      } else {
+        debugPrint('🚀 MAIN: No initial message found');
+      }
+    } catch (e) {
+      debugPrint('🚀 MAIN: Error checking initial message: $e');
+    }
   }
 
   runApp(
@@ -90,30 +91,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'Campus Bites - Customer',
+      title: 'CampusBites',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        inputDecorationTheme: const InputDecorationTheme(
-          border: OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.white,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.white,
-            backgroundColor: Colors.deepPurple,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
-      ),
+      theme: Brand.theme(),
       routes: AppRoutes.getRoutes(),
       initialRoute: '/',
       onGenerateRoute: (settings) {
@@ -149,6 +129,7 @@ class MyApp extends StatelessWidget {
           // Determine route based on auth status and verification
           if (!userProvider.isAuthenticated) {
             return LoginScreen(
+              demoEmail: DemoAccounts.student,
               onLoginSuccess: (context, userRole, isEmailVerified) {
                 if (userRole != 'student') {
                   // Show access denied for non-students

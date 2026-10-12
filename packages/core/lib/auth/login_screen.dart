@@ -1,3 +1,5 @@
+import 'package:core/theme/brand.dart';
+import 'package:core/demo.dart';
 import 'package:core/services/user_provider.dart';
 import 'package:core/utils/validators.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +12,10 @@ typedef LoginSuccessCallback = void Function(
 class LoginScreen extends StatefulWidget {
   final LoginSuccessCallback? onLoginSuccess;
 
-  const LoginScreen({super.key, this.onLoginSuccess});
+  /// Demo builds prefill this seeded account so a reviewer can sign straight in.
+  final String? demoEmail;
+
+  const LoginScreen({super.key, this.onLoginSuccess, this.demoEmail});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -22,6 +27,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kDemoMode && widget.demoEmail != null) {
+      _emailController.text = widget.demoEmail!;
+      _passwordController.text = DemoAccounts.password;
+    }
+  }
 
   @override
   void dispose() {
@@ -93,11 +107,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 const Icon(
                   Icons.fastfood_outlined,
                   size: 80,
-                  color: Colors.blue,
+                  color: Brand.tomato,
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'BrainFuel',
+                  'CampusBites',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28,
@@ -113,6 +127,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Colors.grey,
                   ),
                 ),
+                if (kDemoMode && widget.demoEmail != null) ...[
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Demo build · a seeded account is filled in',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                ],
                 const SizedBox(height: 48),
 
                 // Login Form

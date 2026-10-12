@@ -156,17 +156,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     switch (status) {
       case 'confirmed':
         return const CircleAvatar(
-          backgroundColor: Colors.green,
-          child: Icon(Icons.check, color: Colors.white),
+          backgroundColor: Brand.tomato,
+          child: Icon(Icons.soup_kitchen_outlined, color: Colors.white),
         );
       case 'ready':
+        // Pickup, not delivery: the order waits at the counter.
         return const CircleAvatar(
-          backgroundColor: Colors.orange,
-          child: Icon(Icons.delivery_dining, color: Colors.white),
+          backgroundColor: Brand.basil,
+          child: Icon(Icons.storefront_outlined, color: Colors.white),
         );
       case 'completed':
         return const CircleAvatar(
-          backgroundColor: Colors.blue,
+          backgroundColor: Brand.grill,
           child: Icon(Icons.done_all, color: Colors.white),
         );
       case 'cancelled':

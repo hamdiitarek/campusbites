@@ -27,5 +27,10 @@ export 'utils/validators.dart';
 export 'utils/alert_utils.dart';
 export 'utils/custom_dialogs.dart';
 
+// Theme & widgets
+export 'theme/brand.dart';
+export 'widgets/storage_image.dart';
+
 // Firebase
 export 'firebase_options.dart';
+export 'demo.dart';

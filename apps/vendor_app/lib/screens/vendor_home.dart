@@ -29,7 +29,7 @@ class _VendorMainScreenState extends State<VendorMainScreen> {
     });
   }
 
-  static const Color primaryColor = Color(0xFF0055FF); // Consistent blue
+  static const Color primaryColor = Brand.tomato;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,6 @@ class _VendorMainScreenState extends State<VendorMainScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
         title: Builder(
           builder: (context) {
             return SafeArea(

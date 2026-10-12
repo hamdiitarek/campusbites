@@ -1,3 +1,4 @@
+import 'package:core/theme/brand.dart';
 import 'package:flutter/material.dart';
 
 class CustomDialogs {
@@ -45,7 +46,7 @@ class CustomDialogs {
     required String message,
     String buttonText = 'OK',
     Color backgroundColor = Colors.white,
-    Color buttonColor = Colors.blue,
+    Color buttonColor = Brand.tomato,
   }) {
     final overlayState = Overlay.of(context);
     late OverlayEntry overlayEntry;

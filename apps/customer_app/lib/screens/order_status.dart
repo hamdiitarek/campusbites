@@ -127,13 +127,13 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
       case 'pending':
         return Colors.orange;
       case 'confirmed':
-        return Colors.blue;
+        return Brand.tomato;
       case 'preparing':
         return Colors.purple;
       case 'ready':
-        return Colors.green;
+        return Brand.basil;
       case 'completed':
-        return Colors.green;
+        return Brand.basil;
       default:
         return Colors.grey;
     }
@@ -143,11 +143,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: Brand.cream,
         appBar: AppBar(
           title:
               const Text('Order Status', style: TextStyle(color: Colors.black)),
-          backgroundColor: Colors.white,
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.black),
           leading: IconButton(
@@ -169,11 +168,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
     if (_errorMessage != null) {
       return Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: Brand.cream,
         appBar: AppBar(
           title:
               const Text('Order Status', style: TextStyle(color: Colors.black)),
-          backgroundColor: Colors.white,
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.black),
           leading: IconButton(
@@ -207,11 +205,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
     if (currentOrder == null) {
       return Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: Brand.cream,
         appBar: AppBar(
           title:
               const Text('Order Status', style: TextStyle(color: Colors.black)),
-          backgroundColor: Colors.white,
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.black),
           leading: IconButton(
@@ -232,11 +229,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Brand.cream,
       appBar: AppBar(
         title:
             const Text('Order Status', style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
         leading: IconButton(
@@ -255,6 +251,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           children: [
             // Restaurant Info
             _buildRestaurantInfo(),
+
+            // Where the order is right now
+            _buildProgress(),
 
             const SizedBox(height: 16),
 
@@ -284,18 +283,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
       color: Colors.white,
       child: Row(
         children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.orange[100],
-            ),
-            child: Icon(
-              Icons.restaurant,
-              color: Colors.orange[600],
-              size: 30,
-            ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: StorageImage(currentVendor?.imageUrl ?? '',
+                width: 60, height: 60),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -336,6 +327,102 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const _steps = ['pending', 'confirmed', 'ready', 'completed'];
+  static const _stepLabels = ['Placed', 'Confirmed', 'Ready', 'Picked up'];
+
+  String _headline(String status) {
+    final vendor = currentVendor?.name ?? 'The vendor';
+    switch (status) {
+      case 'pending':
+        return 'Waiting for $vendor to accept';
+      case 'confirmed':
+        return '$vendor is preparing your order';
+      case 'ready':
+        return 'Ready! Pick it up at the counter';
+      case 'completed':
+        return 'Picked up. Enjoy your meal';
+      case 'cancelled':
+        return 'This order was cancelled';
+      default:
+        return status;
+    }
+  }
+
+  Widget _buildProgress() {
+    final status = currentOrder?.status ?? 'pending';
+    final current = _steps.indexOf(status);
+    final cancelled = status == 'cancelled';
+
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _headline(status),
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: cancelled ? Colors.red[700] : Brand.grill,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              for (var i = 0; i < _steps.length; i++) ...[
+                if (i > 0)
+                  Expanded(
+                    child: Container(
+                      height: 3,
+                      color: !cancelled && i <= current
+                          ? Brand.tomato
+                          : Colors.grey[300],
+                    ),
+                  ),
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: !cancelled && i <= current
+                        ? Brand.tomato
+                        : Colors.grey[300],
+                    border: i == current && !cancelled
+                        ? Border.all(color: Brand.tomatoTint, width: 4)
+                        : null,
+                  ),
+                  child: !cancelled && i < current
+                      ? const Icon(Icons.check, size: 14, color: Colors.white)
+                      : null,
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              for (var i = 0; i < _steps.length; i++)
+                Text(
+                  _stepLabels[i],
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight:
+                        i == current ? FontWeight.w700 : FontWeight.w500,
+                    color: !cancelled && i <= current
+                        ? Brand.grill
+                        : Colors.grey[500],
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -391,7 +478,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.green[700],
+                  color: Brand.basil,
                 ),
               ),
             ),
@@ -423,7 +510,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      'Customizations: ${item.customizations.values.join(', ')}',
+                      item.customizations.keys.join(' · '),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -434,7 +521,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             ),
           ),
           Text(
-            '\EGP ${(item.price * item.quantity).toStringAsFixed(2)}',
+            Brand.egp(item.price * item.quantity),
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -533,9 +620,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     if (difference.inMinutes < 1) {
       return 'Just now';
     } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} minutes ago';
+      return '${difference.inMinutes} min ago';
     } else if (difference.inHours < 24) {
-      return '${difference.inHours} hours ago';
+      return '${difference.inHours} h ago';
     } else {
       return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
     }
@@ -581,7 +668,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Paid with ${currentOrder?.paymentMethod ?? 'Unknown'}',
+                currentOrder?.paymentMethod == 'Cash'
+                    ? 'Pay in cash at the counter'
+                    : 'Paid with ${currentOrder?.paymentMethod ?? 'Unknown'}',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -608,7 +697,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             ),
           ),
           Text(
-            '\EGP ${amount.toStringAsFixed(2)}',
+            Brand.egp(amount),
             style: TextStyle(
               fontSize: isTotal ? 16 : 14,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,

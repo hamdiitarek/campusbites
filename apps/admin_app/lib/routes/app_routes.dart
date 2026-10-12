@@ -14,6 +14,7 @@ class AppRoutes {
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       login: (context) => LoginScreen(
+            demoEmail: DemoAccounts.admin,
             onLoginSuccess: (context, userRole, isEmailVerified) {
               if (userRole != 'admin') {
                 _showAccessDenied(context);

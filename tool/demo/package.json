@@ -1,0 +1,14 @@
+{
+  "name": "campusbites-demo",
+  "private": true,
+  "type": "module",
+  "description": "Seeds the Firebase Emulator Suite with a demo campus for CampusBites screenshots and reviews.",
+  "scripts": {
+    "emulators": "firebase emulators:start --project demo-campusbites",
+    "seed": "node seed.mjs",
+    "demo": "sh start.sh"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.5.0"
+  }
+}

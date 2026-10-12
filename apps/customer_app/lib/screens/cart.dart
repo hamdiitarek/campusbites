@@ -1,6 +1,6 @@
+import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'checkout.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class CartScreen extends StatefulWidget {
@@ -13,11 +13,15 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  // Lines merge only when the item and its extras match.
+  static bool _sameLine(Map<String, dynamic> a, Map<String, dynamic> b) =>
+      (a['lineKey'] ?? a['name']) == (b['lineKey'] ?? b['name']);
+
   List<Map<String, dynamic>> get mergedCart {
     final List<Map<String, dynamic>> merged = [];
 
     for (var item in widget.cart) {
-      final index = merged.indexWhere((e) => e['name'] == item['name']);
+      final index = merged.indexWhere((e) => _sameLine(e, item));
       if (index != -1) {
         merged[index]['quantity'] += item['quantity'];
       } else {
@@ -38,15 +42,8 @@ class _CartScreenState extends State<CartScreen> {
     return total;
   }
 
-  Future<String> _getImageUrl(String imagePath) async {
-    try {
-      final downloadUrl =
-          await FirebaseStorage.instance.ref(imagePath).getDownloadURL();
-      return downloadUrl;
-    } catch (e) {
-      throw Exception('Error loading image: $e');
-    }
-  }
+  Future<String> _getImageUrl(String imagePath) =>
+      StorageImage.resolve(imagePath);
 
   Widget _buildItemImage(String? imagePath) {
     if (imagePath == null || imagePath.isEmpty) {
@@ -179,16 +176,31 @@ class _CartScreenState extends State<CartScreen> {
                                 fontSize: 22,
                               ),
                             ),
-                            const SizedBox(height: 24), // 3-line spacing
+                            if ((item['customizations'] as Map?)?.isNotEmpty ??
+                                false)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  (item['customizations'] as Map)
+                                      .keys
+                                      .join(' · '),
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.grey[600]),
+                                ),
+                              ),
+                            const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'EGP ${(double.tryParse(item['price'].toString()) ?? 0.0) * (item['quantity'] ?? 1)}',
+                                  Brand.egp(
+                                      (num.tryParse(item['price'].toString()) ??
+                                              0) *
+                                          (item['quantity'] ?? 1)),
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.green,
+                                    color: Brand.basil,
                                   ),
                                 ),
                                 Row(
@@ -200,8 +212,8 @@ class _CartScreenState extends State<CartScreen> {
                                             for (int i = widget.cart.length - 1;
                                                 i >= 0;
                                                 i--) {
-                                              if (widget.cart[i]['name'] ==
-                                                  item['name']) {
+                                              if (_sameLine(
+                                                  widget.cart[i], item)) {
                                                 widget.cart[i]['quantity']--;
                                                 if (widget.cart[i]
                                                         ['quantity'] <=
@@ -227,8 +239,8 @@ class _CartScreenState extends State<CartScreen> {
                                           setState(() {
                                             for (var originalItem
                                                 in widget.cart) {
-                                              if (originalItem['name'] ==
-                                                  item['name']) {
+                                              if (_sameLine(
+                                                  originalItem, item)) {
                                                 originalItem['quantity']++;
                                                 break;
                                               }
@@ -260,7 +272,7 @@ class _CartScreenState extends State<CartScreen> {
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  'EGP ${totalPrice.toStringAsFixed(2)}',
+                  Brand.egp(totalPrice),
                   style: const TextStyle(
                       fontSize: 22, fontWeight: FontWeight.bold),
                 ),
@@ -274,7 +286,7 @@ class _CartScreenState extends State<CartScreen> {
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Brand.tomato,
                     ),
                     onPressed: () {
                       // Get vendor ID from the first cart item (all items should be from same vendor)

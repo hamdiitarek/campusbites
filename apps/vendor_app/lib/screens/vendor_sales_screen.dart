@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:core/core.dart' as core;
-import 'package:timeago/timeago.dart' as timeago;
+import 'package:core/theme/brand.dart';
 import 'package:animated_custom_dropdown/custom_dropdown.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
@@ -28,7 +28,7 @@ class _VendorSalesScreenState extends State<VendorSalesScreen> {
   final FocusNode _searchFocusNode = FocusNode();
   Timer? _debounceTimer;
 
-  static const Color primaryColor = Color(0xFF0055FF);
+  static const Color primaryColor = Brand.tomato;
 
   @override
   void dispose() {
@@ -43,7 +43,7 @@ class _VendorSalesScreenState extends State<VendorSalesScreen> {
       if (_customStartDate == null || _customEndDate == null) return false;
       final inclusiveEnd = _customEndDate!.add(const Duration(days: 1));
       return (orderDate.isAtSameMomentAs(_customStartDate!) ||
-          orderDate.isAfter(_customStartDate!)) &&
+              orderDate.isAfter(_customStartDate!)) &&
           orderDate.isBefore(inclusiveEnd);
     }
 
@@ -123,7 +123,7 @@ class _VendorSalesScreenState extends State<VendorSalesScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     padding:
-                    const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     child: TextField(
                       controller: _searchController,
                       focusNode: _searchFocusNode,
@@ -133,17 +133,16 @@ class _VendorSalesScreenState extends State<VendorSalesScreen> {
                             color: primaryColor), // Blue icon
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            _onSearchChanged('');
-                          },
-                        )
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _onSearchChanged('');
+                                },
+                              )
                             : null,
                         filled: true,
                         fillColor: Colors.white,
-                        contentPadding:
-                        const EdgeInsets.symmetric(vertical: 0),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -230,13 +229,13 @@ class _VendorSalesScreenState extends State<VendorSalesScreen> {
                               ),
                               child: Row(
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     _customStartDate == null
                                         ? 'Start Date'
                                         : DateFormat('MMM d, y')
-                                        .format(_customStartDate!),
+                                            .format(_customStartDate!),
                                   ),
                                   const Icon(Icons.calendar_today, size: 20),
                                 ],
@@ -256,13 +255,13 @@ class _VendorSalesScreenState extends State<VendorSalesScreen> {
                               ),
                               child: Row(
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     _customEndDate == null
                                         ? 'End Date'
                                         : DateFormat('MMM d, y')
-                                        .format(_customEndDate!),
+                                            .format(_customEndDate!),
                                   ),
                                   const Icon(Icons.calendar_today, size: 20),
                                 ],
@@ -281,31 +280,28 @@ class _VendorSalesScreenState extends State<VendorSalesScreen> {
                   .collection('vendors')
                   .doc(vendorId)
                   .collection('orders')
-                  .where('status', whereIn: ['completed', 'cancelled'])
-                  .snapshots(),
+                  .where('status',
+                      whereIn: ['completed', 'cancelled']).snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
                 final docs = snapshot.data?.docs ?? [];
-                final orders = docs
-                    .map((doc) {
+                final orders = docs.map((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   return core.Order.fromMap(doc.id, data);
-                })
-                    .where((order) {
+                }).where((order) {
                   final matchesSearch = _searchQuery.isEmpty ||
                       order.id
                           .toLowerCase()
                           .contains(_searchQuery.toLowerCase());
                   final matchesStatus = _statusFilter == 'All' ||
-                      order.status.toLowerCase() ==
-                          _statusFilter.toLowerCase();
+                      order.status.toLowerCase() == _statusFilter.toLowerCase();
                   final inDateRange = isInDateRange(order.createdAt);
                   return matchesSearch && matchesStatus && inDateRange;
-                })
-                    .toList();
+                }).toList()
+                  ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
                 final totalRevenue = computeRevenue(orders);
                 final completedOrders =
@@ -316,15 +312,38 @@ class _VendorSalesScreenState extends State<VendorSalesScreen> {
                     onRefresh: () async => setState(() {}),
                     child: Column(
                       children: [
-                        Card(
+                        Container(
+                          width: double.infinity,
                           margin: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 4),
-                          child: ListTile(
-                            title: const Text('Total Sales'),
-                            subtitle:
-                            Text('$completedOrders completed orders'),
-                            trailing:
-                            Text('EGP ${totalRevenue.toStringAsFixed(2)}'),
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: Brand.grill,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Revenue · $_dateFilter',
+                                  style: TextStyle(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.7),
+                                      fontSize: 14)),
+                              const SizedBox(height: 6),
+                              Text(Brand.egp(totalRevenue),
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.w800)),
+                              const SizedBox(height: 4),
+                              Text(
+                                  '$completedOrders completed order${completedOrders == 1 ? '' : 's'}'
+                                  '${completedOrders > 0 ? ' · avg ${Brand.egp((totalRevenue / completedOrders).round())}' : ''}',
+                                  style: TextStyle(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.7),
+                                      fontSize: 14)),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -333,55 +352,53 @@ class _VendorSalesScreenState extends State<VendorSalesScreen> {
                             itemCount: orders.length,
                             itemBuilder: (context, index) {
                               final order = orders[index];
-                              final statusColor = order.status == 'completed'
-                                  ? Colors.grey
-                                  : Colors.red;
-                              final relativeTime =
-                              timeago.format(order.createdAt);
 
                               return Card(
                                 margin: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 6,
-                                      height: 120,
-                                      decoration: BoxDecoration(
-                                        color: statusColor,
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(12),
-                                          bottomLeft: Radius.circular(12),
+                                    horizontal: 16, vertical: 4),
+                                child: ListTile(
+                                  contentPadding:
+                                      const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                                  title: Text(
+                                    order.items
+                                        .map((i) => '${i.quantity}× ${i.name}')
+                                        .join(', '),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                  subtitle: Text(
+                                    '#${order.id.substring(0, 6).toUpperCase()} · '
+                                    '${DateFormat('EEE d MMM, HH:mm').format(order.createdAt)} · '
+                                    '${order.paymentMethod}',
+                                    style: TextStyle(
+                                        fontSize: 13, color: Colors.grey[600]),
+                                  ),
+                                  trailing: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        Brand.egp(order.total),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          color: order.status == 'cancelled'
+                                              ? Colors.grey
+                                              : Brand.grill,
+                                          decoration:
+                                              order.status == 'cancelled'
+                                                  ? TextDecoration.lineThrough
+                                                  : null,
                                         ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      child: ExpansionTile(
-                                        iconColor: primaryColor,
-                                        collapsedIconColor: primaryColor,
-                                        title: Text('Order ID: ${order.id}'),
-                                        subtitle: Column(
-                                          crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                          children: [
-                                            Text('Status: ${order.status}'),
-                                            Text(
-                                                'Payment: ${order.paymentMethod}'),
-                                            Text(
-                                                'Total: EGP ${order.total.toStringAsFixed(2)}'),
-                                            Text('Placed: $relativeTime'),
-                                          ],
-                                        ),
-                                        children: order.items
-                                            .map((item) => ListTile(
-                                          title: Text(item.name),
-                                          subtitle: Text(
-                                              'Qty: ${item.quantity}, Price: ${item.price}'),
-                                        ))
-                                            .toList(),
-                                      ),
-                                    ),
-                                  ],
+                                      if (order.status == 'cancelled')
+                                        Text('Cancelled',
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.red[700])),
+                                    ],
+                                  ),
                                 ),
                               );
                             },

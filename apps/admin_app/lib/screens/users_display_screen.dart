@@ -1,3 +1,4 @@
+import 'package:core/theme/brand.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,7 +20,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('User Management'),
-        backgroundColor: Colors.blue.shade50,
+        backgroundColor: Brand.tomatoTint,
         elevation: 2,
         automaticallyImplyLeading: false,
         actions: [
@@ -40,7 +41,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             child: PopupMenuButton<String>(
               icon: Icon(
                 Icons.filter_alt_outlined,
-                color: Colors.blue.shade600,
+                color: Brand.tomato,
                 size: 24,
               ),
               onSelected: (value) {
@@ -67,7 +68,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   value: 'student',
                   child: Row(
                     children: [
-                      Icon(Icons.school, color: Colors.blue.shade600, size: 20),
+                      Icon(Icons.school, color: Brand.tomato, size: 20),
                       const SizedBox(width: 12),
                       const Text('Students'),
                     ],
@@ -101,12 +102,12 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
               decoration: BoxDecoration(
                 color: _filterRole == 'vendor'
                     ? Colors.orange.shade100
-                    : Colors.blue.shade100,
+                    : Brand.tomatoTint,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: _filterRole == 'vendor'
                       ? Colors.orange.shade300
-                      : Colors.blue.shade300,
+                      : Brand.tomato,
                 ),
               ),
               child: Row(
@@ -115,7 +116,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                     _filterRole == 'vendor' ? Icons.store : Icons.school,
                     color: _filterRole == 'vendor'
                         ? Colors.orange.shade700
-                        : Colors.blue.shade700,
+                        : Brand.tomatoDeep,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -124,7 +125,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                     style: TextStyle(
                       color: _filterRole == 'vendor'
                           ? Colors.orange.shade700
-                          : Colors.blue.shade700,
+                          : Brand.tomatoDeep,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -139,7 +140,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       Icons.close,
                       color: _filterRole == 'vendor'
                           ? Colors.orange.shade700
-                          : Colors.blue.shade700,
+                          : Brand.tomatoDeep,
                       size: 18,
                     ),
                   ),
@@ -319,12 +320,12 @@ class UserCard extends StatelessWidget {
                   radius: 24,
                   backgroundColor: user.role == 'vendor'
                       ? Colors.orange.shade100
-                      : Colors.blue.shade100,
+                      : Brand.tomatoTint,
                   child: Icon(
                     user.role == 'vendor' ? Icons.store : Icons.person,
                     color: user.role == 'vendor'
                         ? Colors.orange.shade600
-                        : Colors.blue.shade600,
+                        : Brand.tomato,
                     size: 24,
                   ),
                 ),
@@ -362,7 +363,7 @@ class UserCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: user.role == 'vendor'
                         ? Colors.orange.shade100
-                        : Colors.blue.shade100,
+                        : Brand.tomatoTint,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -370,7 +371,7 @@ class UserCard extends StatelessWidget {
                     style: TextStyle(
                       color: user.role == 'vendor'
                           ? Colors.orange.shade700
-                          : Colors.blue.shade700,
+                          : Brand.tomatoDeep,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),

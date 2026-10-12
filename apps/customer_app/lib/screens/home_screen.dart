@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'menu.dart';
 import 'search_vendor.dart';
 import 'cart.dart';
+import 'notifications_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 
 class HomeScreen extends StatefulWidget {
   final List<Map<String, dynamic>> cart;
@@ -47,14 +49,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadVendors() async {
-    setState(() => _isLoading = true);
+    _setStateIfMounted(() => _isLoading = true);
 
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final userUniversityName = userProvider.user?.universityName;
 
       if (userUniversityName == null) {
-        setState(() {
+        _setStateIfMounted(() {
           _vendors = [];
           _isLoading = false;
         });
@@ -72,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return Vendor.fromMap(doc.id, doc.data());
       }).toList();
 
-      setState(() {
+      _setStateIfMounted(() {
         _vendors = vendors;
         _isLoading = false;
       });
@@ -81,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _loadVendorMenu(vendor.id);
       }
     } catch (e) {
-      setState(() {
+      _setStateIfMounted(() {
         _vendors = [];
         _isLoading = false;
       });
@@ -96,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .collection('menu')
           .get();
 
-      setState(() {
+      _setStateIfMounted(() {
         _vendorMenus[vendorId] = menuSnapshot.docs;
       });
     } catch (e) {}
@@ -105,14 +107,14 @@ class _HomeScreenState extends State<HomeScreen> {
   // Email verification method removed for testing purposes
 
   Future<void> _loadPopularMeals() async {
-    setState(() => _isLoadingPopularMeals = true);
+    _setStateIfMounted(() => _isLoadingPopularMeals = true);
 
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final userUniversityName = userProvider.user?.universityName;
 
       if (userUniversityName == null) {
-        setState(() {
+        _setStateIfMounted(() {
           _popularMeals = [];
           _isLoadingPopularMeals = false;
         });
@@ -185,22 +187,23 @@ class _HomeScreenState extends State<HomeScreen> {
           .popularity
           .compareTo((a['menuItem'] as MenuItem).popularity));
 
-      for (int i = 0; i < allMeals.length && i < 6; i++) {
-        final meal = allMeals[i]['menuItem'] as MenuItem;
-      }
-
       final topMeals = allMeals.take(6).toList();
 
-      setState(() {
+      _setStateIfMounted(() {
         _popularMeals = topMeals;
         _isLoadingPopularMeals = false;
       });
     } catch (e) {
-      setState(() {
+      _setStateIfMounted(() {
         _popularMeals = [];
         _isLoadingPopularMeals = false;
       });
     }
+  }
+
+  // The loaders await Firestore; the screen may be gone by the time they finish.
+  void _setStateIfMounted(VoidCallback fn) {
+    if (mounted) setState(fn);
   }
 
   @override
@@ -222,18 +225,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
         title: Padding(
           padding: const EdgeInsets.all(15),
           child: Text(
             'Hi, ${fullName.split(' ').first} 👋',
             style: TextStyle(
-                fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue),
+                fontSize: 24, fontWeight: FontWeight.bold, color: Brand.tomato),
           ),
         ),
         actions: [
+          _NotificationBell(
+            onTap: () => Navigator.of(context, rootNavigator: true).push(
+              CupertinoPageRoute(builder: (_) => const NotificationsScreen()),
+            ),
+          ),
           IconButton(
-            icon: const Icon(Icons.shopping_cart, color: Colors.blue),
+            icon: const Icon(Icons.shopping_cart, color: Brand.tomato),
             onPressed: () {
               if (_cart.isNotEmpty) {
                 Navigator.of(context, rootNavigator: true).push(
@@ -337,7 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue),
+                      color: Brand.grill),
                 ),
                 SizedBox(height: 16),
                 if (_isLoading)
@@ -437,19 +444,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ClipRRect(
                                       borderRadius: BorderRadius.vertical(
                                           top: Radius.circular(15)),
-                                      child: vendor.imageUrl.isNotEmpty
-                                          ? Image.network(
-                                              vendor.imageUrl,
-                                              height: 100,
-                                              width: double.infinity,
-                                              fit: BoxFit.cover,
-                                            )
-                                          : Container(
-                                              height: 100,
-                                              color: Colors.grey[300],
-                                              child: Icon(Icons.restaurant,
-                                                  color: Colors.grey[600]),
-                                            ),
+                                      child: StorageImage(
+                                        vendor.imageUrl,
+                                        height: 100,
+                                        width: double.infinity,
+                                      ),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.all(8),
@@ -466,7 +465,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             children: [
                                               Icon(Icons.star,
                                                   size: 16,
-                                                  color: Colors.amber),
+                                                  color: Brand.saffron),
                                               SizedBox(width: 4),
                                               Text(
                                                   '${vendor.rating.toStringAsFixed(1)} (${vendor.reviewCount})'),
@@ -490,12 +489,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue),
+                      color: Brand.grill),
                 ),
                 SizedBox(height: 16),
                 // Popular meals from Firestore
                 Container(
-                  height: 180,
+                  height: 190,
                   child: _isLoadingPopularMeals
                       ? Center(child: CircularProgressIndicator())
                       : _popularMeals.isEmpty
@@ -596,33 +595,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                               borderRadius:
                                                   BorderRadius.vertical(
                                                       top: Radius.circular(15)),
-                                              child: meal.imagePath.isNotEmpty
-                                                  ? Image.network(
-                                                      meal.imagePath,
-                                                      height: 100,
-                                                      width: double.infinity,
-                                                      fit: BoxFit.cover,
-                                                      errorBuilder: (context,
-                                                          error, stackTrace) {
-                                                        return Container(
-                                                          height: 80,
-                                                          color:
-                                                              Colors.grey[300],
-                                                          child: Icon(
-                                                              Icons.fastfood,
-                                                              color: Colors
-                                                                  .grey[600]),
-                                                        );
-                                                      },
-                                                    )
-                                                  : Container(
-                                                      height: 80,
-                                                      color: Colors.grey[300],
-                                                      child: Icon(
-                                                          Icons.fastfood,
-                                                          color:
-                                                              Colors.grey[600]),
-                                                    ),
+                                              // ImagePath is a Storage path, not a URL
+                                              child: StorageImage(
+                                                meal.imagePath,
+                                                height: 100,
+                                                width: double.infinity,
+                                                fallbackIcon: Icons.fastfood,
+                                              ),
                                             ),
                                             Padding(
                                               padding: const EdgeInsets.all(8),
@@ -642,26 +621,38 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   Text(
                                                     mealData['vendorName'],
                                                     style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold),
+                                                        fontSize: 13,
+                                                        color:
+                                                            Colors.grey[600]),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
+                                                  const SizedBox(height: 6),
                                                   Row(
                                                     children: [
-                                                      Icon(Icons.trending_up,
-                                                          size: 16,
-                                                          color: Colors.orange),
-                                                      SizedBox(width: 4),
                                                       Text(
-                                                          '${meal.popularity} orders'),
+                                                        'EGP ${meal.price.toStringAsFixed(0)}',
+                                                        style: const TextStyle(
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: Brand.basil),
+                                                      ),
+                                                      const Spacer(),
+                                                      Icon(Icons.trending_up,
+                                                          size: 15,
+                                                          color:
+                                                              Colors.grey[500]),
+                                                      const SizedBox(width: 3),
+                                                      Text(
+                                                        '${meal.popularity} orders',
+                                                        style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: Colors
+                                                                .grey[600]),
+                                                      ),
                                                     ],
-                                                  ),
-                                                  Text(
-                                                    'EGP ${meal.price.toStringAsFixed(2)}',
-                                                    style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.green),
                                                   ),
                                                 ],
                                               ),
@@ -692,7 +683,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(50),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        backgroundColor: _selectedIndex == index ? Colors.blue : Colors.white,
+        backgroundColor: _selectedIndex == index ? Brand.tomato : Colors.white,
         foregroundColor: _selectedIndex == index ? Colors.white : Colors.black,
       ),
       onPressed: () {
@@ -701,6 +692,44 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       },
       child: Text(text),
+    );
+  }
+}
+
+/// Bell with the number of unread order updates.
+class _NotificationBell extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _NotificationBell({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final unread = uid == null
+        ? const Stream<int>.empty()
+        : FirebaseFirestore.instance
+            .collection('notifications')
+            .where('userId', isEqualTo: uid)
+            .where('read', isEqualTo: false)
+            .snapshots()
+            .map((snapshot) => snapshot.size);
+
+    return StreamBuilder<int>(
+      stream: unread,
+      builder: (context, snapshot) {
+        final count = snapshot.data ?? 0;
+        return IconButton(
+          tooltip: 'Notifications',
+          onPressed: onTap,
+          icon: Badge(
+            isLabelVisible: count > 0,
+            label: Text('$count'),
+            backgroundColor: Brand.tomato,
+            child: const Icon(Icons.notifications_none_rounded,
+                color: Brand.grill),
+          ),
+        );
+      },
     );
   }
 }
