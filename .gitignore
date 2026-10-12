@@ -33,7 +33,7 @@ product plan.md
 **/ios/Flutter/ephemeral/
 **/ios/Pods/
 **/ios/.symlinks/
-**/ios/Runner.xcworkspace/
+**/ios/Runner.xcworkspace/xcuserdata/
 **/ios/Runner.xcodeproj/project.xcworkspace/
 **/ios/Runner.xcodeproj/xcuserdata/
 **/ios/build/
