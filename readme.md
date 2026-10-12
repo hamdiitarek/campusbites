@@ -1,3 +1,15 @@
+# CampusBites
+
+Campus food ordering for Egyptian universities, as three Flutter apps on Firebase: students order and pay from campus vendors, vendors run a live order queue, and university admins manage accounts.
+
+<img src="docs/screenshots/customer-02-home.png" width="200" alt="Student app home with popular vendors and meals"> <img src="docs/screenshots/customer-04-item.png" width="200" alt="Item sheet with extras and live price"> <img src="docs/screenshots/customer-07-order-status.png" width="200" alt="Order tracker updating in real time"> <img src="docs/screenshots/customer-08-history.png" width="200" alt="Order history with vendor, date and status">
+
+<img src="docs/screenshots/vendor-01-orders.png" width="200" alt="Vendor live order queue"> <img src="docs/screenshots/vendor-02-menu.png" width="200" alt="Vendor menu editor"> <img src="docs/screenshots/vendor-03-sales.png" width="200" alt="Vendor sales and revenue"> <img src="docs/screenshots/admin-02-users.png" width="200" alt="Admin user management">
+
+All screenshots are from the demo build: the real apps running against the Firebase emulators with seeded data. To run it yourself, see [tool/demo](tool/demo/README.md).
+
+---
+
 This is a **Flutter monorepo** containing three separate apps for different user roles:
 
 - 👤 `admin_app`
